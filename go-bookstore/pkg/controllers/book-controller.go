@@ -51,18 +51,11 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	CreateBook:= &models.Book{}
 	utils.ParseBody(r, CreateBook)
 	b := CreateBook.CreateBook()
-	res,_ := json.Marshal(b)
-	// if err != nil {
-	// 	http.Error(w, "Could not create book", http.StatusInternalServerError)
-	// 	return
-	// }
-
-	// w.Header()
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write(res)
+	if err := json.NewEncoder(w).Encode(b); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
 
-	
-	// if err := json.NewEncoder(w).Encode(b); err != nil {
-	// 	http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-	// }
+
 }

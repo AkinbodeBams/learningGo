@@ -1,6 +1,12 @@
 package main
 
+​import​ (​  
+"bufio" 
+"fmt"
+  ​"io"​​ 
+    ​"os"​​ )
 
-func main (){
-	
+func main() {
+	bufio.
 }
+

@@ -26,6 +26,8 @@ DB.SetConnMaxIdleTime(5)
 createTables()
 }
 
+
+
 func createTables(){
 	createEventTables := `
 	CREATE TABLE IF NOT EXISTS events(
@@ -36,6 +38,10 @@ func createTables(){
 	user_id INTEGER
 	)
 	`
+
+fmt.Println("log it all out ", createEventTables)
+
+
 	_, err := DB.Exec(createEventTables)
 
 	if err != nil {

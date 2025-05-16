@@ -1,0 +1,6 @@
+{
+    "go.formatTool": "gopls",
+    "gopls": {
+      "formatting.gofumpt": true  // optionally enables gofumpt formatting style
+    }
+}

@@ -8,6 +8,8 @@ import (
 	"github.com/akinbodeBams/social/internal/auth"
 	"github.com/akinbodeBams/social/internal/db"
 	"github.com/akinbodeBams/social/internal/store"
+	"github.com/akinbodeBams/social/internal/store/cache"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 const version = "0.0.1"
@@ -58,6 +60,12 @@ func main() {
 				iss: "qwerty",
 			},
 		},
+		redisCfg: redisConfig{
+			addr: env.GetString("REDIS_ADDR","localhost:6379"),
+			pw: env.GetString("REDIS_pw",""),
+			db: env.GetInt("REDIS_DB",0),
+			enabled: env.GetBool("REDIS_ENABLED", false),
+		},
 }
 				
 // loger
@@ -73,12 +81,20 @@ if err != nil {
 defer db.Close()
 
 logger.Info("database connection pool established")
+var rdb *redis.Client
+if cfg.redisCfg.enabled {
+	rdb = cache.NewRedisClient(cfg.redisCfg.addr,cfg.redisCfg.pw,cfg.redisCfg.db)
+	logger.Info("redis cache connection established")
+}
+
 	store:= store.NewStorage(db)
+	cacheStorage:= cache.NewRedisStorage(rdb)
 
 	jwtAuthenticator:=auth.NewJWTAuthenticator(cfg.auth.token.secret,cfg.auth.token.iss, cfg.auth.token.iss )
 	app := &application{
 		config: cfg,
 		store: store,
+		cacheStorage:cacheStorage,
 		logger: logger,
 		authenticator:jwtAuthenticator,
 	}

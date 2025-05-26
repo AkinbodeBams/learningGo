@@ -8,6 +8,7 @@ import (
 	"github.com/akinbodeBams/social/docs"
 	"github.com/akinbodeBams/social/internal/auth"
 	"github.com/akinbodeBams/social/internal/store"
+	"github.com/akinbodeBams/social/internal/store/cache"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -21,7 +22,14 @@ type config struct {
 	apiURL string
 	mail mailConfig
 	auth  authConfig
+	redisCfg redisConfig
 
+}
+type redisConfig struct {
+	addr string
+	pw string
+	db int
+	enabled bool
 }
 
 type mailConfig struct {
@@ -30,6 +38,7 @@ type mailConfig struct {
 type application struct {
 	config config
 	store  store.Storage
+	cacheStorage cache.Storage
 	logger *zap.SugaredLogger
 	// mailer mailer.Client
 		authenticator auth.Authenticator
@@ -80,8 +89,9 @@ r.Mount("/swagger", httpSwagger.Handler(httpSwagger.URL(docsUrl)))
 			r.Route("/{postID}", func(r chi.Router) {
 				r.Use(app.postsContextMiddleware)
 				r.Get("/",app.getPostHandler)
-				r.Delete("/",app.deletePostHandler)
-				r.Patch("/", app.updatePostHandler)
+
+				r.Patch("/", app.checkPostOwnership("moderator",app.updatePostHandler))
+				r.Delete("/", app.checkPostOwnership("admin",app.deletePostHandler))
 			})
 		}) 
 

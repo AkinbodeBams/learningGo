@@ -19,6 +19,8 @@ type User struct {
 	CreatedAt string `json:"created_at"`
 	IsActive bool `json:"is_active"`
 	Version int `json:"version"`
+	RoleID int `json:"role_id"`
+	Role Role `json:"role"`
 }
 type Password struct {
 text *string
@@ -41,17 +43,24 @@ type UserStore struct {
 
 func (s *UserStore) Create(ctx context.Context,tx *sql.Tx,user *User) error{
 	query := `
-	INSERT INTO users (username, password , email)
-	VALUES ($1,$2,$3)
+	INSERT INTO users (username, password , email,role_id)
+	VALUES ($1,$2,$3,(SELECT id FROM roles WHERE name = $4))
 	returning id, created_at
 	` 
 	ctx,cancel:= context.WithTimeout(ctx, QueryTimeOutDuration)
 	defer cancel()
+
+	role:= user.Role.Name
+
+	if role == ""{
+		role = "user"
+	}
 	err:= s.db.QueryRowContext(
 		ctx,query,
 		user.Username,
 		user.Password.hash,
-		user.Email, 
+		user.Email,
+		role, 
 	).Scan(&user.ID,&user.CreatedAt)
 
 	if err != nil {
@@ -278,4 +287,27 @@ func (s *UserStore) deleteUserInvitations(ctx context.Context , tx *sql.Tx , use
 		return  err
 	}
 	return nil
+}
+
+func (s *UserStore) GetUserByRoleID(ctx context.Context , roleID int64 ) (*User,error){
+	var user User
+	query := `SELECT users.id, role_id, roles.*  FROM users
+	JOIN roles ON (users.role_id = roles.id)
+	WHERE role_id = $1`
+	
+ctx,cancel:= context.WithTimeout(ctx, QueryTimeOutDuration)
+	defer cancel()
+ err := s.db.QueryRowContext(ctx, query, roleID).Scan(
+	&user.ID,
+	&user.RoleID,
+	&user.Role.ID,
+	&user.Role.Name,
+	&user.Role.Level,
+	&user.Role.Description,
+)
+ if err != nil {
+	return nil, err
+ }
+
+ return &user,nil
 }

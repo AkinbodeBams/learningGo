@@ -157,6 +157,7 @@ for i := 0; i< num; i++ {
 		Username:username,
 		Email: username+ "@example.com",
 		 Password:pwd,
+       
 	}
 }
 return users

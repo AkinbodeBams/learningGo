@@ -13,6 +13,11 @@ func (app *application) internalServerError(w http.ResponseWriter,r *http.Reques
 	 writeJSONError(w,http.StatusInternalServerError,"The Server encountered a problem")
 	
 }
+func (app *application) forbiddenError(w http.ResponseWriter,r *http.Request, err error){
+	app.logger.Warnw("forbidden error" , "method", r.Method,"path",r.URL.Path , "error", err)
+	 writeJSONError(w,http.StatusForbidden,"you are not allowed")
+	
+}
 
 func (app *application) Conflict(w http.ResponseWriter,r *http.Request, err error){
 	app.logger.Errorw("Conflict error","method", r.Method , "path" , r.URL.Path ,"error" ,err)

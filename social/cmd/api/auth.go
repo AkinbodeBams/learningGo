@@ -50,14 +50,10 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-
-
-	// userId := 1
-
 	user := &store.User{
 		Email:   payload.Email,
 		Username: payload.Username,
-		
+	
 		
 	}
 
